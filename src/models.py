@@ -20,10 +20,12 @@ class User(db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     # orders = db.relationship('Orders', backref='user', lazy=True)
-    products = db.relationship("Products")
+    # products = db.relationship("Products")
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'))
     username = db.Column(db.String(80), unique=True, nullable=True)
     email = db.Column(db.String(120), unique=True, nullable=True)
-    name = db.Column(db.String(120), unique=False, nullable=True)
+    first_name = db.Column(db.String(120), unique=False, nullable=True)
+    last_name = db.Column(db.String(120), unique=False, nullable=True)
     isAdmin = db.Column(db.Boolean, default=False)
     country = db.Column(db.String(30), unique=False, nullable=True)
     state = db.Column(db.String(30), unique=False, nullable=True)
@@ -41,7 +43,8 @@ class User(db.Model):
             "username": self.username,
             "email": self.email,
             # "orders": self.orders,
-            "name": self.name,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
             "isAdmin": self.isAdmin,
             "country": self.country,
             "state": self.state,
@@ -49,7 +52,7 @@ class User(db.Model):
             "address": self.address,
             "zipcode": self.zipcode,
             "password": self.password,
-            "products": list(map(lambda x: x.serialize(), self.products))
+            "product_id": self.product_id
         }
 
 
@@ -77,8 +80,10 @@ class Products(db.Model):
     __tablename__= 'products'
     id = db.Column(db.Integer, primary_key=True)
     plan_name = db.Column(db.String(30), unique=True, nullable=True)
+    description = db.Column(db.String(250), unique=True, nullable=True)
     price = db.Column(db.Integer, unique=True, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    # user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user = db.relationship("User")
     # orders_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
     # mag_f = db.relationship('magfield', backref='product', lazy=True)
     # temp = db.relationship('tempfield', backref='product', lazy=True)
@@ -93,7 +98,8 @@ class Products(db.Model):
             "id": self.id,
             "plan_name": self.plan_name,
             "price": self.price,
-            "user_id": self.user_id
+            "description": self.description
+            #  "user": list(map(lambda x: x.serialize(), self.user)),
             # "orders_id": list(map(lambda x: x.serialize(), self.orders_id)),
             # "mag_f": list(map(lambda x: x.serialize(), self.mag_f)),
             # "temp": list(map(lambda x: x.serialize(), self.temp)),

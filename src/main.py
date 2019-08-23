@@ -40,6 +40,7 @@ def login():
     username = params.get('username', None)
     password = params.get('password', None)
 
+
     if not username:
         return jsonify({"msg": "Missing username parameter"}), 400
     if not password:
@@ -53,7 +54,7 @@ def login():
     #     return jsonify({"msg": "Bad username or password"}), 401
 
     # Identity can be any data that is json serializable
-    ret = {'jwt': create_jwt(identity=username)}
+    ret = {'jwt': create_jwt(identity=username), 'id': usercheck.id}
     return jsonify(ret), 200
 
 
@@ -81,6 +82,20 @@ def handle_user():
             raise APIException('You need to specify the username', status_code=400)
         if 'email' not in body:
             raise APIException('You need to specify the email', status_code=400)
+        if 'first_name' not in body:
+            raise APIException('You need to specify the first_name', status_code=400)
+        if 'last_name' not in body:
+            raise APIException('You need to specify the last_name', status_code=400)
+        if 'country' not in body:
+            raise APIException('You need to specify the country', status_code=400)
+        if 'state' not in body:
+            raise APIException('You need to specify the state', status_code=400)
+        if 'city' not in body:
+            raise APIException('You need to specify the city', status_code=400)
+        if 'address' not in body:
+            raise APIException('You need to specify the address', status_code=400)
+        if 'zipcode' not in body:
+            raise APIException('You need to specify the zipcode', status_code=400)
         # if 'orders' not in body:
         #     raise APIException('You need to specify the orders', status_code=400)
         # if 'name' not in body:
@@ -100,7 +115,7 @@ def handle_user():
         # if 'password' not in body:
         #     raise APIException('You need to specify the password', status_code=400)
 
-        user1 = User(username=body['username'], email=body['email'], products=body['products'],password=body['password'])
+        user1 = User(username=body['username'], email=body['email'],password=body['password'], first_name=body['first_name'], last_name=body['last_name'], address=body['address'], city=body['city'], zipcode=body['zipcode'], state=body['state'], country=body['country'])
         db.session.add(user1)
         db.session.commit()
         return "ok", 200
@@ -135,7 +150,7 @@ def handle_orders():
     return "Invalid Method", 404
 
 @app.route('/products', methods=[ 'GET', 'POST'])
-@jwt_required
+# @jwt_required
 def handle_products():
 
     if request.method == 'POST':
@@ -159,7 +174,7 @@ def handle_products():
         #     raise APIException('You need to specify the axis_measure', status_code=400)
         # return "Invalid Method", 404
 
-        product1 = Products(plan_name=body['plan_name'], price=body['price'], user_id=body['user_id'])
+        product1 = Products(plan_name=body['plan_name'], price=body['price'])
         db.session.add(product1)
         db.session.commit()
         return "ok", 200
@@ -194,6 +209,8 @@ def get_single_user(user_id):
             user1.username = body["username"]
         if "email" in body:
             user1.email = body["email"]
+        if "product_id" in body:
+            user1.product_id = body["product_id"]
         db.session.commit()
 
         return jsonify(user1.serialize()), 200
@@ -216,9 +233,55 @@ def get_single_user(user_id):
 
     return "Invalid Method", 404
 
+@app.route('/products/<int:product_id>', methods=['PUT', 'GET', 'DELETE'])
+def get_single_product(product_id):
+    """
+    Change Single Product
+    """
+
+    # PUT request
+    if request.method == 'PUT':
+        body = request.get_json()
+        if body is None:
+            raise APIException("You need to specify the request body as a json object", status_code=400)
+
+        product1 = Products.query.get(product_id)
+        if product1 is None:
+            raise APIException('Product not found', status_code=404)
+
+        if "plan_name" in body:
+            product1.plan_name = body["plan_name"]
+        if "price" in body:
+            product1.price = body["price"]
+        if "description" in body:
+            product1.description = body["description"]
+
+        db.session.commit()
+
+        return jsonify(product1.serialize()), 200
+
+    # GET request
+    if request.method == 'GET':
+        product1 = Products.query.get(product_id)
+        if product1 is None:
+            raise APIException('Product not found', status_code=404)
+        return jsonify(product1.serialize()), 200
+
+    # DELETE request
+    if request.method == 'DELETE':
+        product1 = Products.query.get(product_id)
+        if product1 is None:
+            raise APIException('Product not found', status_code=404)
+        db.session.delete(product1)
+        db.session.commit()
+        return "ok", 200
+
+    return "Invalid Method", 404
+
 
 
 @app.route('/pressure', methods=['GET'])
+# @jwt_required
 def get_single_all_data():
 
     return jsonify(data)
