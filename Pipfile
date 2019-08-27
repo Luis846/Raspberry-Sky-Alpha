@@ -17,12 +17,14 @@ mysql-connector-python = "*"
 flask-cors = "*"
 gunicorn = "*"
 flask-jwt-simple = "*"
+requests = "*"
 
 [requires]
 python_version = "3.6"
 
 [scripts]
 start="flask run -p 3000 -h 0.0.0.0"
+
 init="flask db init"
 migrate="flask db migrate"
 upgrade="flask db upgrade"
